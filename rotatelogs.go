@@ -10,11 +10,12 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/lestrrat-go/file-rotatelogs/internal/fileutil"
+	"github.com/GenmTim/file-rotatelogs/internal/fileutil"
 	strftime "github.com/lestrrat-go/strftime"
 	"github.com/pkg/errors"
 )
@@ -26,7 +27,7 @@ func (c clockFn) Now() time.Time {
 // New creates a new RotateLogs object. A log filename pattern
 // must be passed. Optional `Option` parameters may be passed
 func New(p string, options ...Option) (*RotateLogs, error) {
-	globPattern := p
+	globPattern := p + "*"
 	for _, re := range patternConversionRegexps {
 		globPattern = re.ReplaceAllString(globPattern, "*")
 	}
@@ -359,6 +360,18 @@ func (rl *RotateLogs) rotateNolock(filename string) error {
 
 	guard.Enable()
 	go func() {
+		sort.Slice(matches, func(i, j int) bool {
+			fileAInfo, err := os.Stat(matches[i])
+			if err != nil {
+				return true
+			}
+			fileBInfo, err := os.Stat(matches[j])
+			if err != nil {
+				return false
+			}
+			return fileAInfo.ModTime().UnixNano() < fileBInfo.ModTime().UnixNano()
+		})
+
 		// unlink files on a separate goroutine
 		for _, path := range toUnlink {
 			os.Remove(path)

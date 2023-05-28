@@ -11,8 +11,8 @@ import (
 	"testing"
 	"time"
 
+	rotatelogs "github.com/GenmTim/file-rotatelogs"
 	"github.com/jonboulle/clockwork"
-	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
@@ -84,7 +84,7 @@ func TestLogRotate(t *testing.T) {
 		i := i   // avoid lint errors
 		tc := tc // avoid lint errors
 		t.Run(tc.Name, func(t *testing.T) {
-			dir, err := ioutil.TempDir("", fmt.Sprintf("file-rotatelogs-test%d", i))
+			dir, err := os.MkdirTemp("", fmt.Sprintf("file-rotatelogs-test%d", i))
 			if !assert.NoError(t, err, "creating temporary directory should succeed") {
 				return
 			}
@@ -193,7 +193,7 @@ func CreateRotationTestFile(dir string, base time.Time, d time.Duration, n int) 
 }
 
 func TestLogRotationCount(t *testing.T) {
-	dir, err := ioutil.TempDir("", "file-rotatelogs-rotationcount-test")
+	dir, err := os.MkdirTemp("", "file-rotatelogs-rotationcount-test")
 	if !assert.NoError(t, err, "creating temporary directory should succeed") {
 		return
 	}
@@ -286,7 +286,7 @@ func TestLogRotationCount(t *testing.T) {
 }
 
 func TestLogSetOutput(t *testing.T) {
-	dir, err := ioutil.TempDir("", "file-rotatelogs-test")
+	dir, err := os.MkdirTemp("", "file-rotatelogs-test")
 	if err != nil {
 		t.Errorf("Failed to create temporary directory: %s", err)
 	}
@@ -326,7 +326,7 @@ func TestGHIssue16(t *testing.T) {
 		}
 	}()
 
-	dir, err := ioutil.TempDir("", "file-rotatelogs-gh16")
+	dir, err := os.MkdirTemp("", "file-rotatelogs-gh16")
 	if !assert.NoError(t, err, `creating temporary directory should succeed`) {
 		return
 	}
@@ -350,7 +350,7 @@ func TestGHIssue16(t *testing.T) {
 }
 
 func TestRotationGenerationalNames(t *testing.T) {
-	dir, err := ioutil.TempDir("", "file-rotatelogs-generational")
+	dir, err := os.MkdirTemp("", "file-rotatelogs-generational")
 	if !assert.NoError(t, err, `creating temporary directory should succeed`) {
 		return
 	}
@@ -436,7 +436,7 @@ func (f ClockFunc) Now() time.Time {
 }
 
 func TestGHIssue23(t *testing.T) {
-	dir, err := ioutil.TempDir("", "file-rotatelogs-generational")
+	dir, err := os.MkdirTemp("", "file-rotatelogs-generational")
 	if !assert.NoError(t, err, `creating temporary directory should succeed`) {
 		return
 	}
@@ -485,7 +485,7 @@ func TestGHIssue23(t *testing.T) {
 }
 
 func TestForceNewFile(t *testing.T) {
-	dir, err := ioutil.TempDir("", "file-rotatelogs-force-new-file")
+	dir, err := os.MkdirTemp("", "file-rotatelogs-force-new-file")
 	if !assert.NoError(t, err, `creating temporary directory should succeed`) {
 		return
 	}

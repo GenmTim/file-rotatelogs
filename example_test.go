@@ -2,17 +2,16 @@ package rotatelogs_test
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io/fs"
 	"os"
 
-	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
+	rotatelogs "github.com/GenmTim/file-rotatelogs"
 )
 
 func ExampleForceNewFile() {
-	logDir, err := ioutil.TempDir("", "rotatelogs_test")
+	logDir, err := os.MkdirTemp("", "rotatelogs_test")
 	if err != nil {
 		fmt.Println("could not create log directory ", err)
-
 		return
 	}
 	logPath := fmt.Sprintf("%s/test.log", logDir)
@@ -30,23 +29,30 @@ func ExampleForceNewFile() {
 		n, err := writer.Write([]byte("test"))
 		if err != nil || n != 4 {
 			fmt.Println("Write failed ", err, " number written ", n)
-
 			return
 		}
 		err = writer.Close()
 		if err != nil {
 			fmt.Println("Close failed ", err)
-
 			return
 		}
 	}
 
-	files, err := ioutil.ReadDir(logDir)
+	entries, err := os.ReadDir(logDir)
 	if err != nil {
 		fmt.Println("ReadDir failed ", err)
-
 		return
 	}
+
+	files := make([]fs.FileInfo, 0, len(entries))
+	for _, entry := range entries {
+		info, err := entry.Info()
+		if err != nil {
+			fmt.Println("ReadDir failed ", err)
+		}
+		files = append(files, info)
+	}
+
 	for _, file := range files {
 		fmt.Println(file.Name(), file.Size())
 	}
@@ -54,7 +60,6 @@ func ExampleForceNewFile() {
 	err = os.RemoveAll(logDir)
 	if err != nil {
 		fmt.Println("RemoveAll failed ", err)
-
 		return
 	}
 	// OUTPUT:
