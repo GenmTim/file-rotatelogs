@@ -315,6 +315,18 @@ func (rl *RotateLogs) rotateNolock(filename string) error {
 		return err
 	}
 
+	sort.Slice(matches, func(i, j int) bool {
+		fileAInfo, err := os.Stat(matches[i])
+		if err != nil {
+			return true
+		}
+		fileBInfo, err := os.Stat(matches[j])
+		if err != nil {
+			return false
+		}
+		return fileAInfo.ModTime().UnixNano() < fileBInfo.ModTime().UnixNano()
+	})
+
 	cutoff := rl.clock.Now().Add(-1 * rl.maxAge)
 
 	// the linter tells me to pre allocate this...
@@ -360,18 +372,6 @@ func (rl *RotateLogs) rotateNolock(filename string) error {
 
 	guard.Enable()
 	go func() {
-		sort.Slice(matches, func(i, j int) bool {
-			fileAInfo, err := os.Stat(matches[i])
-			if err != nil {
-				return true
-			}
-			fileBInfo, err := os.Stat(matches[j])
-			if err != nil {
-				return false
-			}
-			return fileAInfo.ModTime().UnixNano() < fileBInfo.ModTime().UnixNano()
-		})
-
 		// unlink files on a separate goroutine
 		for _, path := range toUnlink {
 			os.Remove(path)
